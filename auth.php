@@ -69,4 +69,28 @@ final class OreoSQLApi
                 $this->json(['status' => 'error', 'message' => 'Unknown action']);
         }
     }
+
+
+
+    /**
+     * Handle user login from POST request
+     */
+    private function login(): void
+    {
+        $host = $_POST['host'] ?? '';
+        $db   = $_POST['db'] ?? '';
+        $user = $_POST['user'] ?? '';
+        $pass = $_POST['pass'] ?? '';
+
+        $conn = @new mysqli($host, $user, $pass, $db);
+        if ($conn->connect_error) {
+            $this->json(["status" => "error", "message" => $conn->connect_error]);
+        }
+        $_SESSION['db_host'] = $host;
+        $_SESSION['db_name'] = $db;
+        $_SESSION['db_user'] = $user;
+        $_SESSION['db_pass'] = $pass;
+
+        $this->json(["status" => "ok", "db" => $db, "host" => $host, "user" => $user]);
+    }
 }
