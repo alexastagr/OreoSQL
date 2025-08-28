@@ -136,7 +136,7 @@ final class OreoSQLApi
      */
     private function emptyTable(): void
     {
-        $table = $_POST['table'];
+        $table = $_POST['table'] ?? '';
         if (!$this->conn) {
             $this->json(["status" => "error", "message" => "No connection"]);
         }
@@ -146,5 +146,50 @@ final class OreoSQLApi
         } else {
             $this->json(["status" => "error", "message" => $this->conn->error]);
         }
+    }
+
+
+    /**
+     * Drop a specified table (DROP TABLE)
+     */
+    private function dropTable(): void
+    {
+        $table = $_POST['table'] ?? '';
+        if (!$this->conn) {
+            $this->json(["status" => "error", "message" => "No connection"]);
+        }
+        $table = $this->conn->real_escape_string($table);
+        if ($this->conn->query("DROP TABLE `$table`")) {
+            $this->json(["status" => "ok", "message" => "Table dropped"]);
+        } else {
+            $this->json(["status" => "error", "message" => $this->conn->error]);
+        }
+    }
+
+
+    /**
+     * Export the entire database as an SQL file
+     */
+    private function exportDb(): void
+    {
+        if (!$this->conn) {
+            $this->json(["status" => "error", "message" => "No connection"]);
+        }
+        $dbname = $_SESSION['db_name'];
+        header("Content-Type: application/sql");
+        header("Content-Disposition: attachment; filename=\"$dbname.sql\"");
+        $res = $this->conn->query("SHOW TABLES");
+        while ($row = $res->fetch_array()) {
+            $t = $row[0];
+            $create = $this->conn->query("SHOW CREATE TABLE `$t`")->fetch_assoc()["Create Table"];
+            echo "$create;\n\n";
+            $rows = $this->conn->query("SELECT * FROM `$t`");
+            while ($r = $rows->fetch_assoc()) {
+                $vals = array_map(fn($v) => is_null($v) ? "NULL" : "'" . $this->conn->real_escape_string((string)$v) . "'", array_values($r));
+                echo "INSERT INTO `$t` VALUES(" . implode(",", $vals) . ");\n";
+            }
+            echo "\n\n";
+        }
+        exit;
     }
 }
