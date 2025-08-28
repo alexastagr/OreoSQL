@@ -93,4 +93,21 @@ final class OreoSQLApi
 
         $this->json(["status" => "ok", "db" => $db, "host" => $host, "user" => $user]);
     }
+
+
+
+    /**
+     * Check if a user session exists
+     */
+    private function sessionCheck(): void
+    {
+        if (isset($_SESSION['db_host'])) {
+            $this->json([
+                "status" => "ok",
+                "db" => $_SESSION['db_name'],
+                "host" => $_SESSION['db_host'],
+                "user" => $_SESSION['db_user']
+            ]);
+        }
+    }
 }
