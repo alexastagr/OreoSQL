@@ -192,4 +192,50 @@ final class OreoSQLApi
         }
         exit;
     }
+
+
+    /**
+     * Export a specified table as an SQL file
+     */
+    private function exportTable(): void
+    {
+        $table = $_GET['table'] ?? '';
+        if (!$this->conn) {
+            $this->json(["status" => "error", "message" => "No connection"]);
+        }
+        $table = $this->conn->real_escape_string($table);
+        header("Content-Type: application/sql");
+        header("Content-Disposition: attachment; filename=\"$table.sql\"");
+        $create = $this->conn->query("SHOW CREATE TABLE `$table`")->fetch_assoc()["Create Table"];
+        echo "$create;\n\n";
+        $rows = $this->conn->query("SELECT * FROM `$table`");
+        while ($r = $rows->fetch_assoc()) {
+            $vals = array_map(fn($v) => is_null($v) ? "NULL" : "'" . $this->conn->real_escape_string((string)$v) . "'", array_values($r));
+            echo "INSERT  `$table` VALUES(" . (",", $vals) . ");\n";
+        }
+        exit;
+    }
+
+
+   
+    /**
+     * Import an SQL file into the connected database
+     */
+    private function importSql(): void
+    {
+        if (!isset($_FILES['sqlfile'])) {
+            $this->json(["status" => "error", "message" => "No file"]);
+        }
+        $sql = file_get_contents($_FILES['sqlfile']['tmp_name']);
+        if (!$this->conn) {
+            $this->json(["status" => "error", "message" => "No connection"]);
+        }
+        if ($this->conn->multi_query($sql)) {
+             $this->conn->more_results()
+            }
+            $this->json(["status" => "ok", "message" => "Import successful"]);
+        } else {
+            $this->json(["status" => "error", "message" => $this->conn->error]);
+        }
+    }
 }
