@@ -108,6 +108,43 @@ final class OreoSQLApi
                 "host" => $_SESSION['db_host'],
                 "user" => $_SESSION['db_user']
             ]);
+        } else {
+            $this->json(["status" => "error", "message" => "No session"]);
+        }
+    }
+
+
+
+    /**
+     * List all tables in the connected database
+     */
+    private function listTables(): void
+    {
+        if (!$this->conn) {
+            $this->json(["status" => "error", "message" => "No connection"]);
+        }
+        $res = $this->conn->query("SHOW TABLES");
+        $tables = [];
+        while ($row = $res->fetch_array()) $tables[] = $row[0];
+        $this->json(["status" => "ok", "tables" => $tables]);
+    }
+
+
+
+    /**
+     * Empty a specified table (TRUNCATE TABLE)
+     */
+    private function emptyTable(): void
+    {
+        $table = $_POST['table'];
+        if (!$this->conn) {
+            $this->json(["status" => "error", "message" => "No connection"]);
+        }
+        $table = $this->conn->real_escape_string($table);
+        if ($this->conn->query("TRUNCATE TABLE `$table`")) {
+            $this->json(["status" => "ok", "message" => "Table emptied"]);
+        } else {
+            $this->json(["status" => "error", "message" => $this->conn->error]);
         }
     }
 }
