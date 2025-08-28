@@ -148,7 +148,7 @@
                 <!-- start confirmation modal -->
                 <!-- Modal -->
                 <div x-show="modal.open"
-                    class="fixed inset-0 z-80 flex items-center justify-center bg-black/50"
+                    class="fixed inset-0 flex items-center justify-center bg-black/50"
                     x-transition>
                     <div class="bg-white rounded shadow p-4 w-80" @click.away="modal.open=false">
                         <h3 class="font-bold mb-2">Confirmation</h3>
@@ -168,8 +168,8 @@
                 <!-- end confirmation modal -->
 
                 <!-- start tables area -->
-                <div class="flex h-screen w-full flex-col items-center justify-center gap-y-2">
-                    <div class="w-85 rounded-xl border border-gray-200 bg-white py-4 px-2 shadow-md shadow-gray-100">
+                <div class="flex h-screen w-full flex-col mt-10 items-center justify-center gap-y-2">
+                    <div class="w-90 rounded-xl border border-gray-200 bg-white py-4 px-2">
                         <div class="flex items-center justify-between px-2 text-base font-medium text-gray-700">
                             <div class="flex flex-row gap-2 text-lg font-bold">
                                 <div>Table List :</div>
@@ -224,11 +224,93 @@
                 </div>
 
 
+                <!-- start sidebar and hamburger -->
+                <div x-data="{ sidebar: false }">
+                    <!-- menu hamburger -->
+                    <div
+                        @click="sidebar = !sidebar"
+                        class="w-12 h-12 z-90 bg-white rounded-lg absolute top-30 right-5 flex flex-row justify-center items-center cursor-pointer">
+                        <i class="hgi hgi-stroke hgi-menu-square"></i>
+                    </div>
+
+                    <!-- sidebar overlay -->
+                    <template x-if="sidebar">
+                        <div>
+                            <!-- backdrop -->
+                            <div
+                                @click="sidebar = false"
+                                class="fixed inset-0 z-60 bg-[#451515] "></div>
+
+                            <!-- actual sidebar -->
+                            <div
+                                class="fixed top-20 left-0 w-70 h-full bg-[#F0F0F0] shadow-xl z-80 p-4"
+                                x-show="sidebar"
+                                x-transition:enter="transition ease-out duration-300"
+                                x-transition:enter-start="translate-x-full"
+                                x-transition:enter-end="translate-x-0"
+                                x-transition:leave="transition ease-in duration-200"
+                                x-transition:leave-start="translate-x-0"
+                                x-transition:leave-end="translate-x-full">
+                                <h2 class="text-lg font-bold mb-4">Database Actions</h2>
+                                <ul>
+                                    <li class="py-2 border-b">
+                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-red-500">
+                                            <span><i class="hgi hgi-stroke hgi-delete-03 mt-2"></i></span>
+                                            <span>Drop Database</span>
+                                        </div>
+                                    </li>
+
+
+                                    <li class="py-2 border-b">
+                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-green-600">
+                                            <span><i class="hgi hgi-stroke hgi-database-import mt-2"></i></span>
+                                            <span>Export Database</span>
+                                        </div>
+                                    </li>
+
+
+                                    <li class="py-2 border-b">
+                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-blue-600">
+                                            <span><i class="hgi hgi-stroke hgi-database-export mt-2"></i></span>
+                                            <span>Import Database</span>
+                                        </div>
+                                    </li>
+
+
+                                    <li class="py-2 border-b">
+                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:font-semibold">
+                                            <span><i class="hgi hgi-stroke hgi-logout-04 mt-2"></i></span>
+                                            <span>Logout Session</span>
+                                        </div>
+                                    </li>
+
+
+
+
+
+                                </ul>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- end sidebar and hamburger -->
+
+
+
+
+
+
+
+
+
+
+
 
 
 
                 <!-- start status bar -->
-                <div class="w-full h-26 bg-white absolute top-0">
+                <div class="w-full h-20 bg-white absolute top-0 z-80 ">
                     <div class="flex flex-row gap-10 justify-center items-center h-full">
 
                         <!-- user -->
@@ -269,16 +351,8 @@
 
 
 
-                <!-- button area -->
-                <div class="flex flex-col gap-4 absolute bottom-7 right-4">
-                    <div id="menu" class="w-12 h-12 bg-white text-2xl flex justify-center items-center text-black hover:bg-[#7A2834] hover:text-white cursor-pointer right-4 rounded-xl ">
-                        <i class="hgi hgi-stroke hgi-menu-square"></i>
-                    </div>
 
-                    <div @click="logout" class="w-12 h-12 bg-red-500 text-2xl flex justify-center items-center text-white hover:bg-red-600 hover:text-white cursor-pointer right-4 rounded-xl ">
-                        <i class="hgi hgi-stroke hgi-logout-02"></i>
-                    </div>
-                </div>
+
             </div>
             <!-- end dashboard screen -->
 
@@ -357,6 +431,7 @@
                     this.loading = false;
                 },
 
+
                 async login() {
                     const res = await this.api({
                         action: "login",
@@ -369,7 +444,7 @@
                         this.dbUser = res.user;
                         this.loadTables();
                     } else {
-                        alert("Σφάλμα: " + res.message);
+                        alert(res.message);
                     }
                 },
 
@@ -380,7 +455,7 @@
                     if (res.status === "ok") {
                         this.tables = res.tables;
                     } else {
-                        alert("Σφάλμα: " + res.message);
+                        alert(res.message);
                     }
                 },
 
@@ -413,7 +488,7 @@
                 },
 
                 async dropTable(t) {
-                    if (!confirm("Drop πίνακα " + t + " ;")) return;
+                    if (!confirm("Drop table " + t + " ;")) return;
                     const res = await this.api({
                         action: "drop",
                         table: t
@@ -440,6 +515,7 @@
                     this.modal.table = table;
                     this.modal.open = true;
                 },
+
 
                 async doAction() {
                     if (this.modal.action === 'drop') {
