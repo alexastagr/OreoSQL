@@ -286,6 +286,176 @@
     </template>
 
 
+    <!-- main script -->
+    <script>
+        function oreoApp() {
+            return {
+                loggedIn: false,
+                loading: true,
+                dbName: '',
+                dbHost: '',
+                dbUser: '',
+                tables: [],
+                modal: {
+                    open: false,
+                    action: '',
+                    table: ''
+                },
+                loginForm: {
+                    host: 'localhost',
+                    db: '',
+                    user: '',
+                    pass: ''
+                },
+
+                async api(params = {}, formData = null, method = "POST") {
+                    let url = "api.php";
+                    if (method === "GET") {
+                        url += "?" + new URLSearchParams(params);
+                    }
+                    const opts = {
+                        method
+                    };
+                    if (formData) {
+                        opts.body = formData;
+                    } else if (method === "POST") {
+                        opts.headers = {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        };
+                        opts.body = new URLSearchParams(params);
+                    }
+                    const res = await fetch(url, opts);
+                    if (res.headers.get("content-type")?.includes("application/json")) {
+                        return await res.json();
+                    } else {
+                        return {
+                            status: "error",
+                            message: "Invalid response"
+                        };
+                    }
+                },
+
+                async checkSession() {
+                    const res = await this.api({
+                        action: "sessionCheck"
+                    }, null, "GET");
+                    if (res.status === "ok") {
+                        this.loggedIn = true;
+                        this.dbName = res.db;
+                        this.dbHost = res.host;
+                        this.dbUser = res.user;
+                        this.loadTables();
+                    } else {
+                        this.loggedIn = false;
+                    }
+                    this.loading = false;
+                },
+
+                async login() {
+                    const res = await this.api({
+                        action: "login",
+                        ...this.loginForm
+                    });
+                    if (res.status === "ok") {
+                        this.loggedIn = true;
+                        this.dbName = res.db;
+                        this.dbHost = res.host;
+                        this.dbUser = res.user;
+                        this.loadTables();
+                    } else {
+                        alert("Σφάλμα: " + res.message);
+                    }
+                },
+
+                async loadTables() {
+                    const res = await this.api({
+                        action: "list"
+                    });
+                    if (res.status === "ok") {
+                        this.tables = res.tables;
+                    } else {
+                        alert("Σφάλμα: " + res.message);
+                    }
+                },
+
+                async importSql() {
+                    const file = this.$refs.sqlfile.files[0];
+                    if (!file) return;
+                    const formData = new FormData();
+                    formData.append("sqlfile", file);
+                    formData.append("action", "import");
+                    const res = await this.api({}, formData, "POST");
+                    alert(res.message);
+                    if (res.status === "ok") this.loadTables();
+                },
+
+                exportDb() {
+                    window.location = "api.php?action=exportDb";
+                },
+
+                exportTable(t) {
+                    window.location = "api.php?action=exportTable&table=" + encodeURIComponent(t);
+                },
+
+                async emptyTable(t) {
+                    const res = await this.api({
+                        action: "empty",
+                        table: t
+                    });
+                    alert(res.message);
+                    if (res.status === "ok") this.loadTables();
+                },
+
+                async dropTable(t) {
+                    if (!confirm("Drop πίνακα " + t + " ;")) return;
+                    const res = await this.api({
+                        action: "drop",
+                        table: t
+                    });
+                    alert(res.message);
+                    if (res.status === "ok") this.loadTables();
+                },
+
+                async logout() {
+                    await this.api({
+                        action: "logout"
+                    });
+                    this.loggedIn = false;
+                    this.dbName = '';
+                    this.dbHost = '';
+                    this.dbUser = '';
+                    this.tables = [];
+                },
+
+
+                confirmAction(action, table) {
+                    this.modal.action = action;
+                    this.modal.table = table;
+                    this.modal.open = true;
+                },
+
+                async doAction() {
+                    if (this.modal.action === 'drop') {
+                        const res = await this.api({
+                            action: "drop",
+                            table: this.modal.table
+                        });
+                        alert(res.message);
+                        if (res.status === "ok") this.loadTables();
+                    } else if (this.modal.action === 'empty') {
+                        const res = await this.api({
+                            action: "empty",
+                            table: this.modal.table
+                        });
+                        alert(res.message);
+                        if (res.status === "ok") this.loadTables();
+                    }
+                    this.modal.open = false;
+                },
+            }
+        }
+    </script>
+
 
 </body>
 
