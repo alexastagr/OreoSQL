@@ -146,20 +146,21 @@
 
 
                 <!-- start confirmation modal -->
+                <!-- Modal -->
                 <div x-show="modal.open"
                     class="fixed inset-0 z-80 flex items-center justify-center bg-black/50"
                     x-transition>
                     <div class="bg-white rounded shadow p-4 w-80" @click.away="modal.open=false">
-                        <h3 class="font-bold mb-2 text-red-500">Confirmation</h3>
+                        <h3 class="font-bold mb-2">Confirmation</h3>
                         <p>
                             Are you sure you want to
                             <span x-text="modal.action"></span>
-                            the table <b x-text="modal.table"></b> ?
+                            the table <b x-text="modal.table"></b>;
                         </p>
                         <div class="mt-4 flex justify-end space-x-2">
-                            <button @click="modal.open=false">Cancel</button>
+                            <button @click="modal.open=false">No, Cancel</button>
                             <button @click="doAction" class="bg-red-600 text-white px-3 py-1 rounded">
-                                Yes, Proceed
+                                Yes, I'm sure
                             </button>
                         </div>
                     </div>
@@ -186,7 +187,7 @@
 
                                             <!-- drop table -->
 
-                                            <div @click="dropTable(t)" title=" Drop Table" class="flex h-7 w-7 items-center rounded-lg bg-red-500 text-black cursor-pointer">
+                                            <div @click="confirmAction('drop', t)" title=" Drop Table" class="flex h-7 w-7 items-center rounded-lg bg-red-500 text-black cursor-pointer">
                                                 <div class="tag w-full h-full text-center font-medium text-white  flex flex-row justify-center items-center">
                                                     <i class="hgi hgi-stroke hgi-delete-01"></i>
                                                 </div>
@@ -296,6 +297,11 @@
                 dbHost: '',
                 dbUser: '',
                 tables: [],
+                errorbar: {
+                    open: false,
+                    isError: true,
+                    message: ''
+                },
                 modal: {
                     open: false,
                     action: '',
@@ -428,6 +434,7 @@
                 },
 
 
+
                 confirmAction(action, table) {
                     this.modal.action = action;
                     this.modal.table = table;
@@ -451,7 +458,7 @@
                         if (res.status === "ok") this.loadTables();
                     }
                     this.modal.open = false;
-                },
+                }
             }
         }
     </script>
