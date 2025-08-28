@@ -234,6 +234,7 @@ final class OreoSQLApi
         $dbname = $this->conn->real_escape_string($dbname);
 
         if ($this->conn->query("DROP DATABASE `$dbname`")) {
+            session_destroy();
             $this->json(["status" => "ok", "message" => "Database dropped"]);
         } else {
             $this->json(["status" => "error", "message" => $this->conn->error]);
