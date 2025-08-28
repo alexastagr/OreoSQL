@@ -1,0 +1,65 @@
+@import url("https://fonts.googleapis.com/css2?family=Oleo+Script:wght@400;700&family=Share+Tech&display=swap");
+
+body,
+html {
+  overflow: hidden;
+}
+body {
+  font-family: "Share Tech", sans-serif;
+  font-size: 1.3rem;
+  margin: 0;
+  padding: 0;
+}
+
+body::before {
+  content: "";
+  top: 0;
+  min-width: 100dvw;
+  min-height: 100dvh;
+  position: absolute;
+  background: url(https://images.pexels.com/photos/12342219/pexels-photo-12342219.jpeg);
+  background-size: cover;
+  z-index: -1;
+}
+
+body::after {
+  content: "";
+  top: 0;
+  min-width: 100dvw;
+  min-height: 100dvh;
+  position: absolute;
+  background: #231313e2;
+  z-index: -1;
+}
+
+input {
+  text-align: center;
+}
+
+label {
+  font-weight: 800 !important;
+}
+
+.logoarea {
+  font-family: "Oleo Script", system-ui;
+}
+
+.logoarea p {
+  font-family: "Share Tech", sans-serif;
+}
+.logoarea .left {
+  width: 60px;
+  height: 60px;
+  background-image: url(https://www.svgrepo.com/show/417539/oreo-biscuit.svg);
+  background-size: contain;
+  animation: logo-spin infinite 20s linear;
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
