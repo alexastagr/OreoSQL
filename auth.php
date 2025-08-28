@@ -211,13 +211,13 @@ final class OreoSQLApi
         $rows = $this->conn->query("SELECT * FROM `$table`");
         while ($r = $rows->fetch_assoc()) {
             $vals = array_map(fn($v) => is_null($v) ? "NULL" : "'" . $this->conn->real_escape_string((string)$v) . "'", array_values($r));
-            echo "INSERT  `$table` VALUES(" . (",", $vals) . ");\n";
+            echo "INSERT INTO `$table` VALUES(" . implode(",", $vals) . ");\n";
         }
         exit;
     }
 
 
-   
+
     /**
      * Import an SQL file into the connected database
      */
@@ -231,11 +231,36 @@ final class OreoSQLApi
             $this->json(["status" => "error", "message" => "No connection"]);
         }
         if ($this->conn->multi_query($sql)) {
-             $this->conn->more_results()
+            while ($this->conn->more_results() && $this->conn->next_result()) {
             }
             $this->json(["status" => "ok", "message" => "Import successful"]);
         } else {
             $this->json(["status" => "error", "message" => $this->conn->error]);
         }
     }
+
+    /**
+     * Log out the user and destroy the session
+     */
+    private function logout(): void
+    {
+        session_destroy();
+        $this->json(["status" => "ok", "message" => "Logged out"]);
+    }
+
+    /**
+     * Send a JSON response 
+     */
+
+    private function json(array $data): void
+    {
+        echo json_encode($data);
+        exit;
+    }
 }
+
+
+
+$action = $_REQUEST['action'] ?? '';
+$api = new OreoSQLApi();
+$api->dispatch($action);
