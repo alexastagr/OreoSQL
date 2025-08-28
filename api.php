@@ -53,6 +53,9 @@ final class OreoSQLApi
             case "drop":
                 $this->dropTable();
                 break;
+            case "dropDb":
+                $this->dropDatabase();
+                break;
             case "exportDb":
                 $this->exportDb();
                 break;
@@ -214,6 +217,27 @@ final class OreoSQLApi
             echo "INSERT INTO `$table` VALUES(" . implode(",", $vals) . ");\n";
         }
         exit;
+    }
+
+
+
+    /**
+     *  Drop current Database
+     */
+    private function dropDatabase(): void
+    {
+
+        $dbname = $_SESSION['db_name'];
+        if (!$this->conn) {
+            $this->json(["status" => "error", "message" => "No connection"]);
+        }
+        $dbname = $this->conn->real_escape_string($dbname);
+
+        if ($this->conn->query("DROP DATABASE `$dbname`")) {
+            $this->json(["status" => "ok", "message" => "Database dropped"]);
+        } else {
+            $this->json(["status" => "error", "message" => $this->conn->error]);
+        }
     }
 
 
