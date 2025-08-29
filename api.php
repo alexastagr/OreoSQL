@@ -88,13 +88,24 @@ final class OreoSQLApi
         $conn = @new mysqli($host, $user, $pass, $db);
         if ($conn->connect_error) {
             $this->json(["status" => "error", "message" => $conn->connect_error]);
+            exit;
         }
+
+
         $_SESSION['db_host'] = $host;
         $_SESSION['db_name'] = $db;
         $_SESSION['db_user'] = $user;
         $_SESSION['db_pass'] = $pass;
 
-        $this->json(["status" => "ok", "db" => $db, "host" => $host, "user" => $user]);
+        $this->json(
+            [
+                "status" => "ok",
+                "message" => "Success Login",
+                "db" => $db,
+                "host" => $host,
+                "user" => $user
+            ]
+        );
     }
 
 
@@ -125,6 +136,7 @@ final class OreoSQLApi
     {
         if (!$this->conn) {
             $this->json(["status" => "error", "message" => "No connection"]);
+            exit;
         }
         $res = $this->conn->query("SHOW TABLES");
         $tables = [];
@@ -142,6 +154,7 @@ final class OreoSQLApi
         $table = $_POST['table'] ?? '';
         if (!$this->conn) {
             $this->json(["status" => "error", "message" => "No connection"]);
+            exit;
         }
         $table = $this->conn->real_escape_string($table);
         if ($this->conn->query("TRUNCATE TABLE `$table`")) {
@@ -160,6 +173,7 @@ final class OreoSQLApi
         $table = $_POST['table'] ?? '';
         if (!$this->conn) {
             $this->json(["status" => "error", "message" => "No connection"]);
+            exit;
         }
         $table = $this->conn->real_escape_string($table);
         if ($this->conn->query("DROP TABLE `$table`")) {
@@ -177,6 +191,7 @@ final class OreoSQLApi
     {
         if (!$this->conn) {
             $this->json(["status" => "error", "message" => "No connection"]);
+            exit;
         }
         $dbname = $_SESSION['db_name'];
         header("Content-Type: application/sql");
@@ -205,6 +220,7 @@ final class OreoSQLApi
         $table = $_GET['table'] ?? '';
         if (!$this->conn) {
             $this->json(["status" => "error", "message" => "No connection"]);
+            exit;
         }
         $table = $this->conn->real_escape_string($table);
         header("Content-Type: application/sql");
@@ -227,13 +243,15 @@ final class OreoSQLApi
     private function dropDatabase(): void
     {
 
-        $dbname = $_SESSION['db_name'];
+        $dbname = $_POST['db'];
+
         if (!$this->conn) {
             $this->json(["status" => "error", "message" => "No connection"]);
+            exit;
         }
         $dbname = $this->conn->real_escape_string($dbname);
 
-        if ($this->conn->query("DROP DATABASE `$dbname`")) {
+        if ($this->conn->query("DROP DATABASE IF EXISTS `$dbname`")) {
             session_destroy();
             $this->json(["status" => "ok", "message" => "Database dropped"]);
         } else {
@@ -254,6 +272,7 @@ final class OreoSQLApi
         $sql = file_get_contents($_FILES['sqlfile']['tmp_name']);
         if (!$this->conn) {
             $this->json(["status" => "error", "message" => "No connection"]);
+            exit;
         }
         if ($this->conn->multi_query($sql)) {
             while ($this->conn->more_results() && $this->conn->next_result()) {
@@ -261,6 +280,7 @@ final class OreoSQLApi
             $this->json(["status" => "ok", "message" => "Import successful"]);
         } else {
             $this->json(["status" => "error", "message" => $this->conn->error]);
+            exit;
         }
     }
 
