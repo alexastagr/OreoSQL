@@ -24,7 +24,6 @@
 
 <body x-data="oreoApp()" x-init="checkSession()" x-cloak class="bg-[#2c2626] min-h-screen flex items-center justify-center p-8">
 
-
     <template x-if="!loading">
         <div>
 
@@ -175,7 +174,7 @@
                                     </li>
 
 
-                                    <li class="py-2 border-b">
+                                    <li @click="exportDb" class="py-2 border-b">
                                         <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-green-600">
                                             <span><i class="hgi hgi-stroke hgi-database-import mt-2"></i></span>
                                             <span>Export Database</span>
@@ -236,7 +235,7 @@
                         </div>
                     </div>
                 </div>
-                  <!-- end import database window -->
+                <!-- end import database window -->
 
 
                 <!-- desktop icon list -->
@@ -257,18 +256,18 @@
                 <!-- start confirmation modal -->
 
                 <div x-show="modal.open"
-                    class="fixed inset-0 flex items-center justify-center bg-black/50"
+                    class="fixed inset-0 flex z-90 items-center justify-center bg-black/70 backdrop-blur-sm"
                     x-transition>
-                    <div class="bg-white rounded shadow p-4 w-80" @click.away="modal.open=false">
-                        <h3 class="font-bold mb-2">Confirmation</h3>
+                    <div class="bg-white rounded-xl shadow p-7 w-85" @click.away="modal.open=false">
+                        <h3 class="font-bold mb-2 text-red-600">WARNING</h3>
                         <p>
                             Are you sure you want to
                             <span x-text="modal.action"></span>
                             the table <b x-text="modal.table"></b>;
                         </p>
-                        <div class="mt-4 flex justify-end space-x-2">
-                            <button @click="modal.open=false">No, Cancel</button>
-                            <button @click="doAction" class="bg-red-600 text-white px-3 py-1 rounded">
+                        <div class="mt-6 flex justify-center space-x-5">
+                            <button class="cursor-pointer" @click="modal.open=false">No, Cancel</button>
+                            <button @click="doAction" class="bg-red-600 text-white cursor-pointer px-3 py-1 rounded">
                                 Yes, I'm sure
                             </button>
                         </div>
@@ -351,7 +350,7 @@
                             <div class="text-3xl">
                                 <i class="hgi hgi-stroke hgi-user-03"></i>
                             </div>
-                            <div x-text="dbUser" class="text-md text-black text-sm text-semibold">
+                            <div x-text="session.host" class="text-md text-black text-sm text-semibold">
 
                             </div>
                         </div>
@@ -361,7 +360,7 @@
                             <div class="text-3xl">
                                 <i class="hgi hgi-stroke hgi-server-stack-02"></i>
                             </div>
-                            <div x-text="dbHost" class="text-md text-black text-sm text-semibold">
+                            <div x-text="session.host" class="text-md text-black text-sm text-semibold">
 
                             </div>
                         </div>
@@ -371,7 +370,7 @@
                             <div class="text-3xl">
                                 <i class="hgi hgi-stroke hgi-database"></i>
                             </div>
-                            <div x-text="dbName" class="text-md text-black text-sm text-semibold">
+                            <div x-text="session.dbname" class="text-md text-black text-sm text-semibold">
 
                             </div>
                         </div>
@@ -390,13 +389,17 @@
     <script>
         function oreoApp() {
             return {
+
                 loggedIn: false,
                 loading: true,
-                dbName: '',
-                dbHost: '',
-                dbUser: '',
-                tables: [],
 
+                session: {
+                    host: '',
+                    user: '',
+                    dbname: ''
+                },
+
+                tables: [],
                 errorbar: {
                     open: false,
                     isError: true,
@@ -418,6 +421,15 @@
 
                 tablesWindow: false,
                 importWindow: false,
+
+
+                /** pass params headers */
+                async passParams(headerOpts) {
+                    let params = headers.getParams({
+                        token: null,
+                        message: false
+                    })
+                },
 
 
                 // handle import DB file selector
@@ -445,11 +457,6 @@
                     const res = await fetch(url, opts);
                     if (res.headers.get("content-type")?.includes("application/json")) {
                         return await res.json();
-                    } else {
-                        return {
-                            status: "error",
-                            message: "Invalid response"
-                        };
                     }
                 },
 
@@ -458,10 +465,11 @@
                         action: "sessionCheck"
                     }, null, "GET");
                     if (res.status === "ok") {
-                        this.loggedIn = true;
-                        this.dbName = res.db;
-                        this.dbHost = res.host;
-                        this.dbUser = res.user;
+                        const session = res.session
+                        this.loggedIn = true
+                        this.session.host = res.session.host;
+                        this.session.user = res.session.user;
+                        this.session.dbname = res.session.db;
                         this.loadTables();
                     } else {
                         this.loggedIn = false;
@@ -470,20 +478,48 @@
                 },
 
 
+                // show custom error bar
+                showMessage(isError, message) {
+                    this.errorbar.open = true
+                    this.errorbar.isError = isError
+                    this.errorbar.message = message
+
+                    setTimeout(() => {
+                        this.errorbar.open = false
+                        this.errorbar.message = ''
+                    }, 4000)
+
+                },
+
+
+                /**@async
+                 * Send request to API and await
+                 *   for correct response
+                 */
+
                 async login() {
                     const res = await this.api({
                         action: "login",
                         ...this.loginForm
                     });
-                    if (res.status === "ok") {
-                        this.loggedIn = true;
-                        this.dbName = res.db;
-                        this.dbHost = res.host;
-                        this.dbUser = res.user;
-                        this.loadTables();
-                    } else {
-                        alert(res.message);
+
+                    // check if status is OK
+                    if (res.status === 'ok') {
+
+                        const session = res.session
+                        this.showMessage(false, res.message)
+
+                        setTimeout(() => {
+                            this.loggedIn = res.loggedIn
+                            this.session.host = res.session.host;
+                            this.session.user = res.session.user;
+                            this.session.dbname = res.session.db;
+
+                            this.loadTables()
+
+                        }, 2000)
                     }
+
                 },
 
                 async loadTables() {
@@ -535,15 +571,22 @@
                     if (res.status === "ok") this.loadTables();
                 },
 
+
+
+
                 async logout() {
                     await this.api({
                         action: "logout"
                     });
-                    this.loggedIn = false;
-                    this.dbName = '';
-                    this.dbHost = '';
-                    this.dbUser = '';
-                    this.tables = [];
+
+                    this.loggedIn = false
+                    this.sidebar = false
+                    this.tablesWindow = false,
+                        this.importWindow = false,
+                        this.session.host = ''
+                    this.session.user = ''
+                    this.session.dbname = ''
+
                 },
 
 
