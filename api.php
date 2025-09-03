@@ -87,8 +87,11 @@ final class OreoSQLApi
 
         $conn = @new mysqli($host, $user, $pass, $db);
         if ($conn->connect_error) {
-            $this->json(["status" => "error", "message" => $conn->connect_error]);
-            exit;
+
+            echo json_encode([
+                "status" => "error",
+                "message" => $conn->connect_error
+            ]);
         }
 
 
@@ -97,13 +100,17 @@ final class OreoSQLApi
         $_SESSION['db_user'] = $user;
         $_SESSION['db_pass'] = $pass;
 
+
         $this->json(
             [
                 "status" => "ok",
-                "message" => "Success Login",
-                "db" => $db,
-                "host" => $host,
-                "user" => $user
+                "loggedIn" => true,
+                "message" => "Connected to {$db}",
+                "session" => [
+                    "db" => $db,
+                    "host" => $host,
+                    "user" => $user
+                ]
             ]
         );
     }
@@ -115,13 +122,20 @@ final class OreoSQLApi
      */
     private function sessionCheck(): void
     {
+
+
         if (isset($_SESSION['db_host'])) {
-            $this->json([
-                "status" => "ok",
-                "db" => $_SESSION['db_name'],
-                "host" => $_SESSION['db_host'],
-                "user" => $_SESSION['db_user']
-            ]);
+            $this->json(
+                [
+                    "status" => "ok",
+                    "loggedIn" => true,
+                    "session" => [
+                        "db" => $_SESSION['db_name'],
+                        "host" => $_SESSION['db_host'],
+                        "user" =>  $_SESSION['db_user']
+                    ]
+                ]
+            );
         } else {
             $this->json(["status" => "error", "message" => "No session"]);
         }
