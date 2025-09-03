@@ -137,16 +137,125 @@
             <!-- end login screen -->
 
 
-
-
-
             <!-- start dashboard screen -->
 
             <div x-show="loggedIn" class="min-w-full min-h-full absolute left-0 top-0">
 
+                <!-- start sidebar and hamburger -->
+                <div x-data="{ sidebar: false }">
+                    <!-- menu hamburger -->
+                    <div
+                        @click="sidebar = !sidebar"
+                        :class="sidebar ? 'bg-[#b69296] text-white' : 'bg-white text-black'"
+                        class="w-12 h-12 z-90 rounded-lg absolute top-30 right-5 flex flex-row justify-center items-center cursor-pointer">
+                        <i class="hgi hgi-stroke hgi-menu-square"></i>
+                    </div>
+
+                    <!-- sidebar overlay -->
+                    <template x-if="sidebar">
+                        <div>
+
+                            <!-- actual sidebar -->
+                            <div
+                                class="fixed top-20 left-0 w-70 h-full bg-[#F0F0F0] shadow-xl z-80 p-4"
+                                x-show="sidebar"
+                                x-transition:enter="transition ease-out duration-300"
+                                x-transition:enter-start="translate-x-full"
+                                x-transition:enter-end="translate-x-0"
+                                x-transition:leave="transition ease-in duration-200"
+                                x-transition:leave-start="translate-x-0"
+                                x-transition:leave-end="translate-x-full">
+                                <h2 class="text-lg font-bold mb-4">Database Actions</h2>
+                                <ul>
+                                    <li class="py-2 border-b">
+                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-red-500">
+                                            <span><i class="hgi hgi-stroke hgi-delete-03 mt-2"></i></span>
+                                            <span>Drop Database</span>
+                                        </div>
+                                    </li>
+
+
+                                    <li class="py-2 border-b">
+                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-green-600">
+                                            <span><i class="hgi hgi-stroke hgi-database-import mt-2"></i></span>
+                                            <span>Export Database</span>
+                                        </div>
+                                    </li>
+
+
+                                    <li @click="openImportModal" class="py-2 border-b">
+                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-blue-600">
+                                            <span><i class="hgi hgi-stroke hgi-database-export mt-2"></i></span>
+                                            <span>Import Database</span>
+                                        </div>
+                                    </li>
+
+
+                                    <li @click="logout" class="py-2 border-b">
+                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:font-semibold">
+                                            <span><i class="hgi hgi-stroke hgi-logout-04 mt-2"></i></span>
+                                            <span>Logout Session</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- end sidebar and hamburger -->
+
+                <!-- start import database window -->
+                <div x-show="importWindow" class="flex h-screen w-full flex-col mt-10 items-center justify-center gap-y-2">
+
+
+                    <div class="w-95 lg:w-[600px] rounded-xl border relative border-gray-200 bg-white py-4 px-2">
+                        <!-- close file selector icon -->
+                        <div @click="importWindow = false" class="w-6 h-6 bg-red-600 rounded-full text-white absolute top-6 right-5 flex justify-content items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+                                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m7 7l10 10M7 17L17 7" />
+                            </svg>
+                        </div>
+
+                        <div class="w-full py-9 bg-gray-50 rounded-2xl border border-gray-300 gap-3 grid border-dashed">
+                            <div class="grid gap-1">
+                                <svg class="mx-auto text-[#852C36]" xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 16 16">
+                                    <path fill="currentColor" fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2v-1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM0 14.841a1.13 1.13 0 0 0 .401.823q.194.162.478.252c.284.09.411.091.665.091q.507 0 .858-.158q.355-.159.54-.44a1.17 1.17 0 0 0 .187-.656q0-.336-.135-.56a1 1 0 0 0-.375-.357a2 2 0 0 0-.565-.21l-.621-.144a1 1 0 0 1-.405-.176a.37.37 0 0 1-.143-.299q0-.234.184-.384q.187-.152.513-.152q.214 0 .37.068a.6.6 0 0 1 .245.181a.56.56 0 0 1 .12.258h.75a1.1 1.1 0 0 0-.199-.566a1.2 1.2 0 0 0-.5-.41a1.8 1.8 0 0 0-.78-.152q-.44 0-.776.15q-.337.149-.528.421q-.19.273-.19.639q0 .302.123.524t.351.367q.229.143.54.213l.618.144q.31.073.462.193a.39.39 0 0 1 .153.325q0 .165-.085.29A.56.56 0 0 1 2 15.31q-.167.07-.413.07q-.176 0-.32-.04a.8.8 0 0 1-.248-.115a.58.58 0 0 1-.255-.384zm6.878 1.489l-.507-.739q.264-.243.401-.6q.138-.358.138-.806v-.501q0-.556-.208-.967a1.5 1.5 0 0 0-.589-.636q-.383-.225-.917-.225q-.527 0-.914.225q-.384.223-.592.636a2.14 2.14 0 0 0-.205.967v.5q0 .554.205.965q.208.41.592.636a1.8 1.8 0 0 0 .914.222a1.8 1.8 0 0 0 .6-.1l.294.422h.788ZM4.262 14.2v-.522q0-.369.114-.63a.9.9 0 0 1 .325-.398a.9.9 0 0 1 .495-.138q.288 0 .495.138a.9.9 0 0 1 .325.398q.115.261.115.63v.522q0 .246-.053.445q-.053.196-.155.34l-.106-.14l-.105-.147h-.733l.451.65a.6.6 0 0 1-.251.047a.87.87 0 0 1-.487-.147a.9.9 0 0 1-.32-.404a1.7 1.7 0 0 1-.11-.644m3.986 1.057h1.696v.674H7.457v-3.999h.79z" />
+                                </svg>
+                                <h2 class="text-center text-[#852C36] mt-5 text-lg leading-4">Select SQL file</h2>
+                            </div>
+                            <div class="grid gap-2">
+                                <h4 class="text-center text-gray-900 text-sm font-medium leading-snug">Drag and Drop your file here or</h4>
+                                <div class="flex items-center justify-center">
+                                    <label>
+                                        <input type="file" accept=".sql" hidden />
+                                        <div class="flex w-28 h-9 px-2 flex-col bg-[#852C36] rounded-full shadow text-white text-xs font-semibold leading-4 items-center justify-center cursor-pointer focus:outline-none">Choose File</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                  <!-- end import database window -->
+
+
+                <!-- desktop icon list -->
+                <div class="grid grid-rows-3 absolute top-40 left-8 gap-4 z-5">
+
+                    <!-- tables icon -->
+                    <div @click="tablesWindow = true" class="flex flex-col justify-center items-center gap-2 text-white cursor-pointer hover:opacity-80 ">
+                        <div class="w-19 h-19 flex justify-center items-center">
+                            <div class="w-15 h-15 ic-table text-white"></div>
+                        </div>
+
+                        <div class="text-md font-normal">
+                            Show Tables
+                        </div>
+                    </div>
+                </div>
 
                 <!-- start confirmation modal -->
-                <!-- Modal -->
+
                 <div x-show="modal.open"
                     class="fixed inset-0 flex items-center justify-center bg-black/50"
                     x-transition>
@@ -168,12 +277,22 @@
                 <!-- end confirmation modal -->
 
                 <!-- start tables area -->
-                <div class="flex h-screen w-full flex-col mt-10 items-center justify-center gap-y-2">
-                    <div class="w-90 rounded-xl border border-gray-200 bg-white py-4 px-2">
-                        <div class="flex items-center justify-between px-2 text-base font-medium text-gray-700">
+                <div x-show="tablesWindow" class="flex h-screen w-full flex-col mt-10 items-center justify-center gap-y-2">
+                    <div class="w-95 lg:w-[600px] rounded-xl border border-gray-200 bg-white py-4 px-2">
+                        <div class="flex items-center justify-between px-2 text-base relative font-medium text-gray-700">
                             <div class="flex flex-row gap-2 text-lg font-bold">
                                 <div>Table List :</div>
                                 <div x-text="tables.length"></div>
+                            </div>
+
+                            <!-- close tables window -->
+                            <div @click="tablesWindow = false" class="w-6 h-6 absolute cursor-pointer bottom-2 right-0 bg-red-600 rounded-full flex justify-center items-center text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24">
+                                    <g fill="none" fill-rule="evenodd">
+                                        <path d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
+                                        <path fill="currentColor" d="m12 13.414l5.657 5.657a1 1 0 0 0 1.414-1.414L13.414 12l5.657-5.657a1 1 0 0 0-1.414-1.414L12 10.586L6.343 4.929A1 1 0 0 0 4.93 6.343L10.586 12l-5.657 5.657a1 1 0 1 0 1.414 1.414z" />
+                                    </g>
+                                </svg>
                             </div>
 
                         </div>
@@ -223,92 +342,6 @@
 
                 </div>
 
-
-                <!-- start sidebar and hamburger -->
-                <div x-data="{ sidebar: false }">
-                    <!-- menu hamburger -->
-                    <div
-                        @click="sidebar = !sidebar"
-                        class="w-12 h-12 z-90 bg-white rounded-lg absolute top-30 right-5 flex flex-row justify-center items-center cursor-pointer">
-                        <i class="hgi hgi-stroke hgi-menu-square"></i>
-                    </div>
-
-                    <!-- sidebar overlay -->
-                    <template x-if="sidebar">
-                        <div>
-                            <!-- backdrop -->
-                            <div
-                                @click="sidebar = false"
-                                class="fixed inset-0 z-60 bg-[#451515] "></div>
-
-                            <!-- actual sidebar -->
-                            <div
-                                class="fixed top-20 left-0 w-70 h-full bg-[#F0F0F0] shadow-xl z-80 p-4"
-                                x-show="sidebar"
-                                x-transition:enter="transition ease-out duration-300"
-                                x-transition:enter-start="translate-x-full"
-                                x-transition:enter-end="translate-x-0"
-                                x-transition:leave="transition ease-in duration-200"
-                                x-transition:leave-start="translate-x-0"
-                                x-transition:leave-end="translate-x-full">
-                                <h2 class="text-lg font-bold mb-4">Database Actions</h2>
-                                <ul>
-                                    <li class="py-2 border-b">
-                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-red-500">
-                                            <span><i class="hgi hgi-stroke hgi-delete-03 mt-2"></i></span>
-                                            <span>Drop Database</span>
-                                        </div>
-                                    </li>
-
-
-                                    <li class="py-2 border-b">
-                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-green-600">
-                                            <span><i class="hgi hgi-stroke hgi-database-import mt-2"></i></span>
-                                            <span>Export Database</span>
-                                        </div>
-                                    </li>
-
-
-                                    <li class="py-2 border-b">
-                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:text-blue-600">
-                                            <span><i class="hgi hgi-stroke hgi-database-export mt-2"></i></span>
-                                            <span>Import Database</span>
-                                        </div>
-                                    </li>
-
-
-                                    <li class="py-2 border-b">
-                                        <div class="flex flex-row gap-2 items-center cursor-pointer hover:font-semibold">
-                                            <span><i class="hgi hgi-stroke hgi-logout-04 mt-2"></i></span>
-                                            <span>Logout Session</span>
-                                        </div>
-                                    </li>
-
-
-
-
-
-                                </ul>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- end sidebar and hamburger -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 <!-- start status bar -->
                 <div class="w-full h-20 bg-white absolute top-0 z-80 ">
                     <div class="flex flex-row gap-10 justify-center items-center h-full">
@@ -322,8 +355,6 @@
 
                             </div>
                         </div>
-
-
 
                         <!-- hostname -->
                         <div class="flex flex-col justify-center items-center h-full text-[#7a383f]">
@@ -349,14 +380,8 @@
                 </div>
                 <!-- end status bar -->
 
-
-
-
-
             </div>
             <!-- end dashboard screen -->
-
-
         </div>
     </template>
 
@@ -371,6 +396,7 @@
                 dbHost: '',
                 dbUser: '',
                 tables: [],
+
                 errorbar: {
                     open: false,
                     isError: true,
@@ -386,6 +412,18 @@
                     db: '',
                     user: '',
                     pass: ''
+                },
+
+                // window statuses
+
+                tablesWindow: false,
+                importWindow: false,
+
+
+                // handle import DB file selector
+                openImportModal() {
+                    this.sidebar = false
+                    this.importWindow = true
                 },
 
                 async api(params = {}, formData = null, method = "POST") {
@@ -538,6 +576,9 @@
             }
         }
     </script>
+
+
+
 
 
 </body>
